@@ -2,7 +2,7 @@
 SFC-SIM is an implementation of the social force model for simulating crowds.
 
 ## PREREQUISITES
--MATLAB
+-MATLAB (Communications Toolbox)
 
 ## INSTALLING
 Clone or download the repository to a local directory.
