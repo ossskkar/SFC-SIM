@@ -10,7 +10,7 @@ Clone or download the repository to a local directory.
 ## RUNNING THE SIMULATOR
 
 ### CONFIGURATION FILE
-Check the configuration file (.conf) in the ./data directory for configuration parameters of the model.
+Check the configuration file ./data/<file_name>.conf for configuration parameters of the model.
 
 ### TOPOLOGY MAP
 
