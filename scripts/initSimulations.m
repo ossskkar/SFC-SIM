@@ -1,0 +1,320 @@
+function data = initSimulations(data)
+
+function new_sim = newSimulation()
+    
+    
+    new_sim.r = 0.2029;                   % Agent's mean radious 
+    new_sim.r_sigma = new_sim.r * 0.15;   % Agent's radious standard deviation
+    new_sim.m = 80.7;                     % Agent's mean mass
+    new_sim.m_sigma = new_sim.m * 0.20;   % Agent's mass standard deviation
+    new_sim.v0 = 1.8;                     % Agent's initial velocity
+    new_sim.v0_sigma = new_sim.v0 * 0.20; % Agent's velocity standard deviation
+    new_sim.v_max = 5;                    % Agent's maximum allowed velocity
+    
+    new_sim.tau = 0.5;        % 
+    
+    new_sim.duration = 5;                 % Duration of this simulation segment
+    new_sim.emission_rate = 10;           % Number of new agents to be added 
+    new_sim.emission_time = 0.5;          % Time interval to add new agents
+    new_sim.emission_max_variation = 0.2; % Maximum variation of emission rate (in %)
+    new_sim.temporal_poi = 1;             % Use temporal POIs (yes/no)
+    new_sim.escape_mode = 0;              % Escape mode (yes/no)
+    new_sim.spectator_mode = 0;           % Spectator crowd mode (yes/no)
+    new_sim.spectator_ratio = 0;          % Indicate the % of pedestrians to join the spectator crowd
+    new_sim.performers_max = 0;           % Indicate the max number of performers in speectator crowd
+    new_sim.spectator_time = 0;           % Indicate the time to join the spectator crowd
+    new_sim.ti = [];                      % List of agent's entry/exit/temporal 
+                                          % POIs and time of emission
+    % Default clusters of POIs 
+    new_sim.poi_cluster{1}.idx = [2 11 9 3];   % Cluster C1
+    new_sim.poi_cluster{2}.idx = [10 5 6 7 8]; % Cluster C2   
+    new_sim.poi_cluster{3}.idx = [4 12];       % Cluster C3
+    new_sim.poi_cluster{4}.idx = [1 13];       % Cluster C4
+    new_sim.poi_cluster{5}.idx = [14];         % Cluster C5
+
+    % Get number of clusters for non-temporal POIs
+    new_sim.num_clusters = length(new_sim.poi_cluster);
+    
+    % Uniform distribution of agents 
+    u_dist = round(1 / new_sim.num_clusters, 2);
+    for i = 1:new_sim.num_clusters
+        
+        % Emission distribution among clusters
+        new_sim.poi_dist(i) = u_dist;
+        
+        % Flow distribution, % of pedestrians moving 
+        % from cluster i to clusters j^1,... j^k 
+        new_sim.poi_cluster{i}.dist = ones(new_sim.num_clusters,1)*u_dist;
+    end
+    
+    % Default cluster of temporal POIs 
+    new_sim.temp_poi_cluster{1}.idx = [3 4 6 5 2 1]; % Cluster C6
+    new_sim.temp_poi_cluster{2}.idx = [7 8];         % Cluster C7
+
+    % Get number of clusters of temporal POIs
+    new_sim.num_temp_clusters = length(new_sim.temp_poi_cluster);
+    
+    % Default timer for temporal POIs (how long the agent waits before
+    % continuing to destination POI)
+    %new_sim.temp_timer = 10;
+    new_sim.temp_timer = 5;
+    new_sim.temp_timer_max_variation = 0.50;
+    
+    % Emission distribution among temporal clusters
+    u_dist = round(1 / new_sim.num_temp_clusters, 2);
+    for i = 1:new_sim.num_temp_clusters
+        
+        % Emission distribution among clusters
+        new_sim.temp_poi_dist(i) = u_dist;
+        
+        % Flow distribution, % of pedestrians moving 
+        % from cluster i to clusters j^1,... j^k 
+        new_sim.temp_poi_cluster{i}.dist = ones(new_sim.num_temp_clusters,1)*u_dist;
+    end
+
+    % Emission distribution between temporal and non-temporal agents
+    new_sim.temp_dist = [0.5 0.5];
+    
+    
+    %{% POI DISTRIBUTION: NON-PEAK HOURS 
+
+    % Emission distribution among clusters
+    new_sim.poi_dist = [0.20 0.20 0.20 0.20 0.20];
+
+    % Emission distribution between temporal and non-temporal agents
+    new_sim.temp_dist = [0.50 0.50];
+
+    % Flow distribution, % of pedestrians moving from cluster i to clusters j^1,... j^k 
+    new_sim.poi_cluster{1}.dist = [0.00 0.20 0.20 0.20 0.20];
+    new_sim.poi_cluster{2}.dist = [0.20 0.00 0.20 0.20 0.20];
+    new_sim.poi_cluster{3}.dist = [0.20 0.20 0.00 0.20 0.20];
+    new_sim.poi_cluster{4}.dist = [0.20 0.20 0.20 0.00 0.20];
+    new_sim.poi_cluster{5}.dist = [0.20 0.20 0.20 0.20 0.00];
+
+    %}%
+    
+end
+
+function computeSimulation()
+    
+    % For each simulation segment
+    for i = 1:data.num_sim
+        
+        % Get current simulation 
+        cur_sim = data.simulation{i};
+        
+        % Get total number of agents for simulation segment
+        num_emissions = cur_sim.duration/cur_sim.emission_time;
+        num_agents = num_emissions * cur_sim.emission_rate;
+        
+        % Exit iteration if no agents are to be generated
+        if (num_emissions == 0) 
+            break; 
+        end
+        
+        % For each entry cluster
+        for cidx_entry = 1:cur_sim.num_clusters
+            
+            % Get number of agents to enter by this cluster of POIs
+            num_agents_entry_cluster = round(num_agents * cur_sim.poi_dist(cidx_entry));
+            
+            % For each exit cluster
+            for cidx_exit = 1:length(cur_sim.poi_cluster{cidx_entry}.dist)
+                
+                % Get number of agents to exit by this cluster of POIs
+                num_agents_exit_cluster = round(num_agents_entry_cluster * ...
+                    cur_sim.poi_cluster{cidx_entry}.dist(cidx_exit));
+                
+                % Skip iteration if no agents are to be added
+                if (num_agents_exit_cluster > 0)
+                
+                    % Initialize list of entry-exit POI's indexes/numbers
+                    new_ti_idx = zeros(num_agents_exit_cluster,2);
+                    new_ti = zeros(num_agents_exit_cluster,6);
+                    
+                    % Assign randon index of POIs from entry cluster
+                    new_ti_idx(:,1) = randi(...
+                        [1 length(cur_sim.poi_cluster{cidx_entry}.idx)], ...
+                        num_agents_exit_cluster,1);
+
+                    % Assign randon index of POIs from exit cluster
+                    new_ti_idx(:,2) = randi(...
+                        [1 length(cur_sim.poi_cluster{cidx_exit}.idx)], ...
+                        num_agents_exit_cluster,1);
+
+                    % Assign entry/exit POIs
+                    new_ti(:,1) = cur_sim.poi_cluster{cidx_entry}.idx(new_ti_idx(:,1));
+                    new_ti(:,2) = cur_sim.poi_cluster{cidx_exit}.idx(new_ti_idx(:,2));
+
+                    % Mark as non-temporal POIs
+                    new_ti(:,3) = 0; 
+                    
+                    % Add to list of agent's entry-exit POIs
+                    cur_sim.ti = [cur_sim.ti; new_ti];
+                end
+            end
+            
+            % For each temporal cluster POI
+            for cidx_temp = 1:length(cur_sim.temp_poi_cluster)
+            
+                % Get number of agents to go to this temporal cluster of POIs
+                num_agents_temp_cluster = round(num_agents_entry_cluster * ...
+                    cur_sim.temp_dist(2) * ... % Account for agents with temporal POIs
+                    cur_sim.temp_poi_dist(cidx_temp));
+                
+                % Skip iteration if no agents are to be added
+                if (num_agents_temp_cluster > 0)
+                    
+                    % Initialize list of entry-exit POI's indexes/numbers
+                    new_ti_idx = zeros(num_agents_temp_cluster,2);
+                    
+                    % Assign randon index of POIs from temporal cluster
+                    new_ti_idx(:,2) = randi(...
+                        [1 length(cur_sim.temp_poi_cluster{cidx_temp}.idx)], ...
+                        num_agents_temp_cluster,1);
+
+                    [ai_total, ~] = size(cur_sim.ti);
+                    
+                    % For each agent
+                    tries = 0;
+                    while (num_agents_temp_cluster > 0 && tries < 100)
+                        
+                        % Select a random agent
+                        ai_idx = randi([1 ai_total]);
+                        
+                        if (cur_sim.ti(ai_idx,3) == 0)
+                            
+                            % Assign temporal POI
+                            cur_sim.ti(ai_idx,3) = cur_sim.temp_poi_cluster{cidx_temp}.idx(new_ti_idx(num_agents_temp_cluster,2));
+
+                            % Update the counter for agents with temporal POIs
+                            num_agents_temp_cluster = num_agents_temp_cluster - 1;
+                        else 
+                            tries = tries + 1;
+                        end
+                    end
+                end
+            end
+            
+        end
+        
+        % Update number of agents
+        [num_agents, ~] = size(cur_sim.ti);
+        
+        % Assign time of emission following a uniform random distribution
+        %cur_sim.ti(:,4) = randi([1 num_emissions], num_agents,1) * cur_sim.emission_time;
+        
+        % Assign time of emission following a Poisson process
+        %yp = random('Poisson', 15, 100,1);
+        %yp2 = round(((yp - min(yp)) ./ (max(yp)-min(yp)))*30);
+        
+        cur_sim.ti(:,4) = random('Poisson', num_emissions/2, num_agents, 1);
+        cur_sim.ti(:,4) = (cur_sim.ti(:,4)-min(cur_sim.ti(:,4)))./(max(cur_sim.ti(:,4))-min(cur_sim.ti(:,4)))*cur_sim.duration;
+        
+        % If simulation is in spectator mode
+        if (cur_sim.spectator_mode)
+            
+                % Get number of spectators
+                num_spectators = round(num_agents * cur_sim.spectator_ratio);
+                
+                % Get index of agents to be spectators
+                spectators_idx = randi([1 num_agents], num_spectators,1);
+                
+                % Flag agents as spectators
+                cur_sim.ti(spectators_idx,6) = 1;
+                
+                % Get number of performers
+                if (num_agents < cur_sim.performers_max)
+                    num_performers = randi([1 num_agents], 1, 1);
+                else
+                    num_performers = randi([1 cur_sim.performers_max],1,1);
+                end
+                
+                % Flag agents as performers
+                cur_sim.ti(1:num_performers,6) = 2;
+        end
+        
+        % Update current simulation 
+        data.simulation{i} = cur_sim;
+    end
+end
+
+% Iteration #1
+data.simulation{1} = newSimulation();
+data.simulation{1}.duration = 30; % Duration of this simulation segment
+data.simulation{1}.emission_rate = 1; % Number of new agents to be added 
+data.simulation{1}.emission_time = 0.2;  % Time interval to add new agents
+data.simulation{1}.emission_max_variation = 0.2; % Maximum variation of emission rate (in %)
+data.simulation{1}.temporal_poi = 1;             % Use temporal POIs (yes/no)
+
+data.simulation{1}.v0 = 1.4;                     % Agent's initial velocity
+
+
+%data.simulation{1}.poi_cluster{1}.dist = [0.00 0.35 0.15 0.15 0.15]; % to adjust similarity index
+
+% Iteration #2
+data.simulation{2} = newSimulation();
+data.simulation{2}.duration = 40; % Duration of this simulation segment
+data.simulation{2}.emission_rate = 0; % Number of new agents to be added 
+
+% Iteration #3
+data.simulation{3} = newSimulation();
+data.simulation{3}.duration = 5; % Duration of this simulation segment
+data.simulation{3}.emission_rate = 1; % Number of new agents to be added 
+data.simulation{3}.emission_time = 0.2;  % Time interval to add new agents
+data.simulation{3}.emission_max_variation = 0.2; % Maximum variation of emission rate (in %)
+data.simulation{3}.temporal_poi = 1;             % Use temporal POIs (yes/no)
+data.simulation{3}.v0 = 1.5;                     % Agent's initial velocity
+
+% Iteration #4
+data.simulation{4} = newSimulation();
+data.simulation{4}.duration = 5; % Duration of this simulation segment
+data.simulation{4}.emission_rate = 0; % Number of new agents to be added 
+
+% Iteration #5
+data.simulation{5} = newSimulation();
+data.simulation{5}.duration = 10; % Duration of this simulation segment
+data.simulation{5}.emission_rate = 1; % Number of new agents to be added 
+data.simulation{5}.emission_time = 0.4;  % Time interval to add new agents
+data.simulation{5}.emission_max_variation = 0.2; % Maximum variation of emission rate (in %)
+data.simulation{5}.temporal_poi = 1;             % Use temporal POIs (yes/no)
+data.simulation{5}.v0 = 1.6;                     % Agent's initial velocity
+
+% Iteration #6
+data.simulation{6} = newSimulation();
+data.simulation{6}.duration = 10; % Duration of this simulation segment
+data.simulation{6}.emission_rate = 0; % Number of new agents to be added 
+
+% Iteration #7
+data.simulation{7} = newSimulation();
+data.simulation{7}.duration = 10; % Duration of this simulation segment
+data.simulation{7}.emission_rate = 1; % Number of new agents to be added 
+data.simulation{7}.emission_time = 0.4;  % Time interval to add new agents
+data.simulation{7}.emission_max_variation = 0.2; % Maximum variation of emission rate (in %)
+data.simulation{7}.temporal_poi = 1;             % Use temporal POIs (yes/no)
+data.simulation{7}.v0 = 1.6;                     % Agent's initial velocity
+
+%data.simulation{1}.poi_cluster{4}.dist = [0.00 0.35 0.15 0.15 0.15]; % to adjust similarity index
+
+%}
+%{
+% Iteration #1
+data.simulation{1} = newSimulation();
+data.simulation{1}.duration = 300; % Duration of this simulation segment (in seconds)
+data.simulation{1}.emission_rate = 0.32; % Number of new agents to be added 
+data.simulation{1}.emission_time = 1;  % Time interval to add new agents
+data.simulation{1}.emission_max_variation = 0.2; % Maximum variation of emission rate (in %)
+data.simulation{1}.temporal_poi = 1;             % Use temporal POIs (yes/no)
+
+data.simulation{1}.v0 = 3.5;                     % Agent's initial velocity
+%}
+
+
+% Get number of simulation segments
+data.num_sim = length(data.simulation);
+
+% Compute Agent's distribution
+computeSimulation();
+
+end
+
