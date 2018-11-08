@@ -13,6 +13,7 @@ Clone or download the repository to a local directory
 - Oscar J. Urizar
 
 ## LICENCE
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## ACKNOWLEDGEMENT
 This crowd simulation tool was developed as part of the research conducted by Oscar J. Urizar under the Erasmus Mundus Joint Doctorate Program in Interactive and Cognitive Environments (EMJD-ICE)
