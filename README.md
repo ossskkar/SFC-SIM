@@ -10,10 +10,12 @@ Clone or download the repository to a local directory.
 ## RUNNING THE SIMULATOR
 
 ### CONFIGURATION FILE
-Check the configuration file ./data/<config_file>.conf for configuration parameters of the model.
+- The configuration file ./data/<config_file>.conf contains the configuration parameters of the model.
+- Parameter intent_count indicates the number of static points of interest.
+- Parameter temp_intent_count indicates the number of temporal points of interest (stopovers).
 
 ### TOPOLOGY MAP
-- The topology of the environment is specified by a <map_file> in format JPE/PNG, located in ./images.
+- The topology of the environment is specified in the file ./images/<map_file> in JPE/PNG format.
 - The dimensions of the environment corresponds to the dimensions of <map_file>.
 - The walls of the environment correspond to the black (0,0,0) pixels in <map_file>.
 - The static points of interest (origin/destination) corresponds to the green (0,255,0) pixels in <map_file>.
@@ -23,10 +25,13 @@ Check the configuration file ./data/<config_file>.conf for configuration paramet
 - The <map_file> to be used is indicated by the "floor_1_build" parameter in the <config_file>.
 
 ### SIMULATION PLAN
-
+- The simulation plan can be specified in ./scripts/initSimulations.m
+- The set of simulation segments are stored in the cell array data.simulation.
+- The function newSimulation() creates a new simulation segment with default parameters.
+- The parameters of each simulation segment can be adjusted manually.
 
 ### RUN A SIMULATION
-Open and execute the file ./scripts/simulate.m to run a simulation.
+- Open and execute the file ./scripts/simulate.m to run a simulation.
 
 ## AUTHORS
 - Oscar J. Urizar.
