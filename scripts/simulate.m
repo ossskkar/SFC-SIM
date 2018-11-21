@@ -2,7 +2,7 @@ function simulate(config_file)
 % run this to start the simulation
 
 if nargin==0
-    config_file='../data/cstation_cvpr2015.conf';
+    config_file='../data/cstation.conf';
 end
 
 fprintf('Load config file...\n');

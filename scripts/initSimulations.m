@@ -2,7 +2,6 @@ function data = initSimulations(data)
 
 function new_sim = newSimulation()
     
-    
     new_sim.r = 0.2029;                   % Agent's mean radious 
     new_sim.r_sigma = new_sim.r * 0.15;   % Agent's radious standard deviation
     new_sim.m = 80.7;                     % Agent's mean mass
@@ -241,7 +240,7 @@ end
 
 % Iteration #1
 data.simulation{1} = newSimulation();
-data.simulation{1}.duration = 30; % Duration of this simulation segment
+data.simulation{1}.duration = 10; % Duration of this simulation segment
 data.simulation{1}.emission_rate = 1; % Number of new agents to be added 
 data.simulation{1}.emission_time = 0.2;  % Time interval to add new agents
 data.simulation{1}.emission_max_variation = 0.2; % Maximum variation of emission rate (in %)
@@ -249,7 +248,7 @@ data.simulation{1}.temporal_poi = 1;             % Use temporal POIs (yes/no)
 
 data.simulation{1}.v0 = 1.4;                     % Agent's initial velocity
 
-
+%{
 %data.simulation{1}.poi_cluster{1}.dist = [0.00 0.35 0.15 0.15 0.15]; % to adjust similarity index
 
 % Iteration #2
@@ -308,7 +307,7 @@ data.simulation{1}.temporal_poi = 1;             % Use temporal POIs (yes/no)
 
 data.simulation{1}.v0 = 3.5;                     % Agent's initial velocity
 %}
-
+%}
 
 % Get number of simulation segments
 data.num_sim = length(data.simulation);
