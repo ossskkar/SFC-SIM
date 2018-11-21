@@ -33,6 +33,9 @@ Clone or download the repository to a local directory.
 ### RUN A SIMULATION
 - Open and execute the file ./scripts/simulate.m to run a simulation.
 
+### SIMULATION DATA
+- The data produced by a simulation plan is stored by default in ./data/simulation.mat, indicated in ./scripts/simulate.m.
+
 ## AUTHORS
 - Oscar J. Urizar.
 
