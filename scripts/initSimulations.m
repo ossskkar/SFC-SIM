@@ -240,7 +240,7 @@ end
 
 % Iteration #1
 data.simulation{1} = newSimulation();
-data.simulation{1}.duration = 10; % Duration of this simulation segment
+data.simulation{1}.duration = 30; % Duration of this simulation segment
 data.simulation{1}.emission_rate = 1; % Number of new agents to be added 
 data.simulation{1}.emission_time = 0.2;  % Time interval to add new agents
 data.simulation{1}.emission_max_variation = 0.2; % Maximum variation of emission rate (in %)

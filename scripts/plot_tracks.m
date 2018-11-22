@@ -19,8 +19,7 @@ set(frame_h,'Maximized',1);
 
 % Plot background image to specific coordinates
 img = imread('../images/cstation_c.png');
-imagesc([0 data.inf.frame_size(2)], [0 data.inf.frame_size(1)], img);
-%imagesc(img);
+imagesc([0 data.inf.frame_size(1)], [0 data.inf.frame_size(2)], img);
 hold on
 
 % For each track
@@ -32,12 +31,8 @@ for i = 1:n
     % Get current track
     this_track = data.tracks{i};
     
-    %xy = [awgn(this_track(:,2),40,'measured') awgn(this_track(:,3),40,'measured')];
-    %xy = [this_track(:,2) awgn(this_track(:,3),40,'measured')];
-    
     % Plot current track
-    plot(this_track(:,2), data.inf.frame_size(1)-this_track(:,3));
-    %plot(this_track(:,2), data.inf.frame_size(1)-this_track(:,3), xy(:,1), data.inf.frame_size(1)-xy(:,2));
+    plot(this_track(:,2), data.inf.frame_size(2)-this_track(:,3));
     
 end
 
