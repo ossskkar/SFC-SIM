@@ -70,10 +70,6 @@ function new_sim = newSimulation()
         % from cluster i to clusters j^1,... j^k 
         new_sim.temp_poi_cluster{i}.dist = ones(new_sim.num_temp_clusters,1)*u_dist;
     end
-
-    % Emission distribution between temporal and non-temporal agents
-    new_sim.temp_dist = [0.5 0.5];
-    
     
     %{% POI DISTRIBUTION: NON-PEAK HOURS 
 
@@ -246,7 +242,10 @@ data.simulation{1}.emission_time = 0.2;  % Time interval to add new agents
 data.simulation{1}.emission_max_variation = 0.2; % Maximum variation of emission rate (in %)
 data.simulation{1}.temporal_poi = 1;             % Use temporal POIs (yes/no)
 
-data.simulation{1}.v0 = 1.4;                     % Agent's initial velocity
+data.simulation{1}.v0 = 1.4; % Agent's initial velocity
+
+data.simulation{1}.v0_sigma = data.simulation{1}.v0 * 0.20; % Agent's velocity standard deviation
+data.simulation{1}.v_max = 5;                    % Agent's maximum allowed velocity
 
 %{
 %data.simulation{1}.poi_cluster{1}.dist = [0.00 0.35 0.15 0.15 0.15]; % to adjust similarity index

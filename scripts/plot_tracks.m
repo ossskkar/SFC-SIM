@@ -1,12 +1,13 @@
 % DESCRIPTION: Plot tracks with background image
 
-format_data();
+%format_data();
 
 % Clean up
 clear; close all; clc;
 
 % Load data
-load ../dataset/simulation_2n_ww;
+file_name = '0001';
+load(strcat('../dataset/set_', file_name));
 
 % Get number of tracks
 n = length(data.tracks);

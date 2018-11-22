@@ -36,8 +36,8 @@
 % Clean up
 clear; close all; clc;
 
-file_name = 'simulation';
-load(strcat('../data/', file_name));
+file_name = '0001';
+load(strcat('../data/raw_', file_name));
 
 % Get data information
 new_data.inf.frame_size = fliplr(size(data.floor.img_plot));
@@ -89,7 +89,7 @@ end
 data.tracks = data.tracks.';
 
 % Save data
-save(strcat('../dataset/', file_name, '_2n_ww'),'data');
+save(strcat('../dataset/set_', file_name));
 
 % Clean up
 clear i new_data this_track_idx tracks_idx file_name;

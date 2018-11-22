@@ -88,7 +88,7 @@ delete(findall(0,'Type','figure'))
 
 % Save log data
 %save(strcat("Log ", datestr(datetime)), "data");
-save("../data/simulation", "data");
+save("../data/raw_0001", "data");
 
 fprintf('Simulation done.\n');
 

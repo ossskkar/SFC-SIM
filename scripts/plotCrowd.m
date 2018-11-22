@@ -1,8 +1,9 @@
 clear;
 
 % Load log data
-%load("../data/Log1.mat");
-load("../data/simulation");
+% Load data
+file_name = '0001';
+load(strcat('../data/raw_', file_name));
 
 % Get size of figure
 [h, w] = size(data.floor.img_plot);
